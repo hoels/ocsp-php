@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php\certificate;
+namespace OCSP\Certificate;
 
 use Exception;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\ASN1\Maps\Name;
 use phpseclib3\File\X509;
-use web_eid\ocsp_php\exceptions\OcspCertificateException;
-use web_eid\ocsp_php\util\AsnUtil;
-use web_eid\ocsp_php\util\HashAlgorithm;
+use OCSP\Exceptions\OcspCertificateException;
+use OCSP\Util\AsnUtil;
+use OCSP\Util\HashAlgorithm;
 
 class CertificateLoader
 {

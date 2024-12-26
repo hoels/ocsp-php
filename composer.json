@@ -14,14 +14,14 @@
     },
     "autoload": {
         "psr-4": {
-            "web_eid\\ocsp_php\\": [
+            "OCSP\\": [
                 "src"
             ]
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "web_eid\\ocsp_php\\": [
+            "OCSP\\Tests\\": [
                 "tests"
             ]
         }

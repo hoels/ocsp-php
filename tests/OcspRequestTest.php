@@ -22,12 +22,13 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php;
+namespace OCSP\Tests;
 
+use OCSP\OcspRequest;
+use OCSP\Util\AsnUtil;
 use phpseclib3\File\ASN1;
 use PHPUnit\Framework\TestCase;
 use ReflectionObject;
-use web_eid\ocsp_php\util\AsnUtil;
 
 class OcspRequestTest extends TestCase
 {
@@ -58,13 +59,13 @@ class OcspRequestTest extends TestCase
         $requestReflector = new ReflectionObject($request);
 
         $this->assertEquals([
-            'tbsRequest' => [
-                'version' => 'v1',
-                'requestExtensions' => [
+            "tbsRequest" => [
+                "version" => "v1",
+                "requestExtensions" => [
                     [
-                        'extnId' => AsnUtil::ID_PKIX_OCSP_NONCE,
-                        'critical' => false,
-                        'extnValue' => ASN1::encodeDER("nonce", ['type' => ASN1::TYPE_OCTET_STRING]),
+                        "extnId" => AsnUtil::ID_PKIX_OCSP_NONCE,
+                        "critical" => false,
+                        "extnValue" => ASN1::encodeDER("nonce", ["type" => ASN1::TYPE_OCTET_STRING]),
                     ]
                 ]
             ],

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php\maps;
+namespace OCSP\Maps;
 
 use phpseclib3\File\ASN1;
 use phpseclib3\File\ASN1\Maps\AlgorithmIdentifier;

@@ -1,6 +1,6 @@
 <?php
 
-namespace web_eid\ocsp_php\util;
+namespace OCSP\Util;
 
 enum HashAlgorithm: string
 {

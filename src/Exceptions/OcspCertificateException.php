@@ -22,14 +22,12 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php\exceptions;
-
-use Exception;
+namespace OCSP\Exceptions;
 
 /**
- * Base class for all OCSP exceptions.
+ * Thrown when there is any certificate exception
  */
-abstract class OcspException extends Exception
+class OcspCertificateException extends OcspException
 {
     public function __construct(string $message)
     {

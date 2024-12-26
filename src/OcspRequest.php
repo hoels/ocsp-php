@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php;
+namespace OCSP;
 
 use phpseclib3\File\ASN1;
-use web_eid\ocsp_php\maps\OcspRequestMap;
-use web_eid\ocsp_php\util\AsnUtil;
+use OCSP\Maps\OcspRequestMap;
+use OCSP\Util\AsnUtil;
 
 class OcspRequest
 {

@@ -22,25 +22,26 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php\certificate;
+namespace OCSP\Tests\Certificate;
 
+use OCSP\Certificate\CertificateLoader;
+use OCSP\Exceptions\OcspCertificateException;
+use OCSP\Util\HashAlgorithm;
 use phpseclib3\File\X509;
 use PHPUnit\Framework\TestCase;
-use web_eid\ocsp_php\exceptions\OcspCertificateException;
-use web_eid\ocsp_php\util\HashAlgorithm;
 
 class CertificateLoaderTest extends TestCase
 {
     public function testWhenCertificateLoaderFromFileSuccess(): void
     {
-        $certificate = CertificateLoader::fromFile(__DIR__ . '/../_resources/revoked.crt');
+        $certificate = CertificateLoader::fromFile(__DIR__ . "/../resources/revoked.crt");
 
         $issuerCertificateUrl = CertificateLoader::getIssuerCertificateUrl($certificate);
         $ocspResponderUrl = CertificateLoader::getOcspResponderUrl($certificate);
 
         $this->assertEquals(
             "318601422914101149693420017798940712227677",
-            $certificate->getCurrentCert()['tbsCertificate']['serialNumber']
+            $certificate->getCurrentCert()["tbsCertificate"]["serialNumber"]
         );
         $this->assertEquals("http://cert.int-x3.letsencrypt.org/", $issuerCertificateUrl);
         $this->assertEquals("http://ocsp.int-x3.letsencrypt.org", $ocspResponderUrl);
@@ -48,11 +49,11 @@ class CertificateLoaderTest extends TestCase
 
     public function testWhenCertificateLoaderFromStringSuccess(): void
     {
-        $certData = file_get_contents(__DIR__ . '/../_resources/revoked.crt');
+        $certData = file_get_contents(__DIR__ . "/../resources/revoked.crt");
         $certificate = CertificateLoader::fromString($certData);
         $this->assertEquals(
             "318601422914101149693420017798940712227677",
-            $certificate->getCurrentCert()['tbsCertificate']['serialNumber']
+            $certificate->getCurrentCert()["tbsCertificate"]["serialNumber"]
         );
     }
 
@@ -60,24 +61,24 @@ class CertificateLoaderTest extends TestCase
     {
         $this->expectException(OcspCertificateException::class);
         $this->expectExceptionMessage(
-            'Certificate file not found or not readable: ' . __DIR__ . '/../_resources/somecert.crt'
+            "Certificate file not found or not readable: " . __DIR__ . "/../resources/somecert.crt"
         );
 
-        CertificateLoader::fromFile(__DIR__ . '/../_resources/somecert.crt');
+        CertificateLoader::fromFile(__DIR__ . "/../resources/somecert.crt");
     }
 
     public function testWhenCertificateIsInvalidThrows(): void
     {
         $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate decoding from Base64 or parsing failed');
+        $this->expectExceptionMessage("Certificate decoding from Base64 or parsing failed");
 
-        CertificateLoader::fromFile(__DIR__ . '/../_resources/invalid.crt');
+        CertificateLoader::fromFile(__DIR__ . "/../resources/invalid.crt");
     }
 
     public function testWhenCertificateStringIsNotValidThrows(): void
     {
         $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate decoding from Base64 or parsing failed');
+        $this->expectExceptionMessage("Certificate decoding from Base64 or parsing failed");
 
         CertificateLoader::fromString("certsource");
     }
@@ -85,19 +86,19 @@ class CertificateLoaderTest extends TestCase
     public function testWhenGenerateCertificateIdIsSuccess(): void
     {
         $result = CertificateLoader::generateCertificateId(
-            CertificateLoader::fromFile(__DIR__ . '/../_resources/revoked.crt'),
-            CertificateLoader::fromFile(__DIR__ . '/../_resources/revoked.issuer.crt'),
+            CertificateLoader::fromFile(__DIR__ . "/../resources/revoked.crt"),
+            CertificateLoader::fromFile(__DIR__ . "/../resources/revoked.issuer.crt"),
             hashAlgorithm: HashAlgorithm::SHA1
         );
 
-        $this->assertEquals("1.3.14.3.2.26", $result['hashAlgorithm']['algorithm']);
+        $this->assertEquals("1.3.14.3.2.26", $result["hashAlgorithm"]["algorithm"]);
         $this->assertEquals(
             [126, 230, 106, 231, 114, 154, 179, 252, 248, 162, 32, 100, 108, 22, 161, 45, 96, 113, 8, 93],
-            array_values(unpack('C*', $result['issuerNameHash']))
+            array_values(unpack("C*", $result["issuerNameHash"]))
         );
         $this->assertEquals(
             [168, 74, 106, 99, 4, 125, 221, 186, 230, 209, 57, 183, 166, 69, 101, 239, 243, 168, 236, 161],
-            array_values(unpack('C*', $result['issuerKeyHash']))
+            array_values(unpack("C*", $result["issuerKeyHash"]))
         );
     }
 
@@ -107,7 +108,7 @@ class CertificateLoaderTest extends TestCase
         $this->expectExceptionMessage("Serial number of subject certificate does not exist");
 
         $subject = new X509();
-        $subject->setDNProp('id-at-organizationName', 'no serialnumber cert');
+        $subject->setDNProp("id-at-organizationName", "no serialnumber cert");
 
         $issuer = new X509();
         $issuer->setDN($subject->getDN());

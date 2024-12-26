@@ -22,12 +22,14 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php\exceptions;
+namespace OCSP\Exceptions;
+
+use Exception;
 
 /**
- * Thrown when OCSP response verification fails
+ * Base class for all OCSP exceptions.
  */
-class OcspVerifyFailedException extends OcspException
+abstract class OcspException extends Exception
 {
     public function __construct(string $message)
     {

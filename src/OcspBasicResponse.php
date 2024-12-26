@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php;
+namespace OCSP;
 
 use DateTime;
 use Exception;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\ASN1\Maps\Certificate;
 use phpseclib3\File\X509;
-use web_eid\ocsp_php\exceptions\OcspCertificateException;
-use web_eid\ocsp_php\maps\OcspBasicResponseMap;
-use web_eid\ocsp_php\util\AsnUtil;
+use OCSP\Exceptions\OcspCertificateException;
+use OCSP\Maps\OcspBasicResponseMap;
+use OCSP\Util\AsnUtil;
 
 class OcspBasicResponse
 {

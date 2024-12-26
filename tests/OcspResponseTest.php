@@ -22,17 +22,18 @@
  * SOFTWARE.
  */
 
-namespace web_eid\ocsp_php;
+namespace OCSP\Tests;
 
 use DateTime;
+use OCSP\Exceptions\OcspCertificateException;
+use OCSP\Exceptions\OcspResponseDecodeException;
+use OCSP\Exceptions\OcspVerifyFailedException;
+use OCSP\OcspResponse;
+use OCSP\Util\AsnUtil;
 use phpseclib3\File\ASN1;
 use PHPUnit\Framework\TestCase;
 use ReflectionObject;
 use UnexpectedValueException;
-use web_eid\ocsp_php\exceptions\OcspCertificateException;
-use web_eid\ocsp_php\exceptions\OcspResponseDecodeException;
-use web_eid\ocsp_php\exceptions\OcspVerifyFailedException;
-use web_eid\ocsp_php\util\AsnUtil;
 
 class OcspResponseTest extends TestCase
 {
@@ -47,7 +48,7 @@ class OcspResponseTest extends TestCase
     // and https://gist.github.com/mrts/bb0dcf93a2b9d2458eab1f9642ee97b2.
     private static function getOcspResponseBytesFromResources(string $resource = "ocsp_response.der"): string
     {
-        return file_get_contents(__DIR__ . "/_resources/$resource");
+        return file_get_contents(__DIR__ . "/resources/$resource");
     }
 
     public function testWhenResponseDecodeFailsThenThrows(): void
