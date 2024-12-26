@@ -29,41 +29,47 @@ use web_eid\ocsp_php\exceptions\OcspCertificateException;
 
 class CertificateLoaderTest extends TestCase
 {
-
     public function testWhenCertificateLoaderFromFileSuccess(): void
     {
-        $loader = (new CertificateLoader)->fromFile(__DIR__.'/../_resources/revoked.crt');
+        $certificate = CertificateLoader::fromFile(__DIR__ . '/../_resources/revoked.crt');
 
-        $issuerCertificateUrl = $loader->getIssuerCertificateUrl();
-        $ocspResponderUrl = $loader->getOcspResponderUrl();
+        $issuerCertificateUrl = CertificateLoader::getIssuerCertificateUrl($certificate);
+        $ocspResponderUrl = CertificateLoader::getOcspResponderUrl($certificate);
 
-        $this->assertEquals("318601422914101149693420017798940712227677", $loader->getCert()->getCurrentCert()['tbsCertificate']['serialNumber']);
+        $this->assertEquals(
+            "318601422914101149693420017798940712227677",
+            $certificate->getCurrentCert()['tbsCertificate']['serialNumber']
+        );
         $this->assertEquals("http://cert.int-x3.letsencrypt.org/", $issuerCertificateUrl);
         $this->assertEquals("http://ocsp.int-x3.letsencrypt.org", $ocspResponderUrl);
     }
 
     public function testWhenCertificateLoaderFromStringSuccess(): void
     {
-        $certData = file_get_contents(__DIR__.'/../_resources/revoked.crt');
-        $certificate = (new CertificateLoader)->fromString($certData)->getCert();
-        $this->assertEquals("318601422914101149693420017798940712227677", $certificate->getCurrentCert()['tbsCertificate']['serialNumber']);
+        $certData = file_get_contents(__DIR__ . '/../_resources/revoked.crt');
+        $certificate = CertificateLoader::fromString($certData);
+        $this->assertEquals(
+            "318601422914101149693420017798940712227677",
+            $certificate->getCurrentCert()['tbsCertificate']['serialNumber']
+        );
     }
 
     public function testWhenCertificateFileDoNotExistThrows(): void
     {
         $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate file not found or not readable: '.__DIR__.'/../_resources/somecert.crt');
+        $this->expectExceptionMessage(
+            'Certificate file not found or not readable: ' . __DIR__ . '/../_resources/somecert.crt'
+        );
 
-        (new CertificateLoader)->fromFile(__DIR__.'/../_resources/somecert.crt');
-
+        CertificateLoader::fromFile(__DIR__ . '/../_resources/somecert.crt');
     }
 
     public function testWhenCertificateIsInvalidThrows(): void
     {
         $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate decoding from Base64 or parsing failed for '.__DIR__.'/../_resources/invalid.crt');
+        $this->expectExceptionMessage('Certificate decoding from Base64 or parsing failed');
 
-        (new CertificateLoader)->fromFile(__DIR__.'/../_resources/invalid.crt');
+        CertificateLoader::fromFile(__DIR__ . '/../_resources/invalid.crt');
     }
 
     public function testWhenCertificateStringIsNotValidThrows(): void
@@ -71,31 +77,6 @@ class CertificateLoaderTest extends TestCase
         $this->expectException(OcspCertificateException::class);
         $this->expectExceptionMessage('Certificate decoding from Base64 or parsing failed');
 
-        (new CertificateLoader)->fromString("certsource");
+        CertificateLoader::fromString("certsource");
     }
-
-    public function testWhenCertificateIsNotLoadedOnIssuerCertificateUrlThrows(): void
-    {
-        $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate not loaded');
-
-        (new CertificateLoader)->getIssuerCertificateUrl();
-    }
-
-    public function testWhenCertificateIsNotLoadedOnOcspResponderUrlThrows(): void
-    {
-        $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate not loaded');
-
-        (new CertificateLoader)->getOcspResponderUrl();
-    }
-
-    public function testWhenCertificateIsNotLoadedOnGetCertThrows(): void
-    {
-        $this->expectException(OcspCertificateException::class);
-        $this->expectExceptionMessage('Certificate not loaded');
-
-        (new CertificateLoader)->getCert();
-    }
-
 }

@@ -30,67 +30,51 @@ use web_eid\ocsp_php\exceptions\OcspCertificateException;
 
 class CertificateLoader
 {
-    private ?X509 $certificate = null;
-
     /**
      * Loads the certificate from file path and returns the certificate
      *
-     * @param string pathToFile - full path to the certificate file
+     * @param string $pathToFile Full path to the certificate file
+     * @return X509 Loaded certificate
      * @throws OcspCertificateException when the certificate decoding or parse fails
      */
-    public function fromFile(string $pathToFile)
+    public static function fromFile(string $pathToFile): X509
     {
-        if (!is_readable($pathToFile)) {
-            throw new OcspCertificateException("Certificate file not found or not readable: " . $pathToFile);
+        if (!is_readable($pathToFile) || !is_file($pathToFile)) {
+            throw new OcspCertificateException("Certificate file not found or not readable: $pathToFile");
         }
         $fileContent = file_get_contents($pathToFile);
         if ($fileContent === false) {
-            throw new OcspCertificateException("Failed to read certificate file: " . $pathToFile);
+            throw new OcspCertificateException("Failed to read certificate file: $pathToFile");
         }
 
-        $certificate = new X509();
-        $loaded = $certificate->loadX509($fileContent);
-        if (!$loaded) {
-            throw new OcspCertificateException(
-                "Certificate decoding from Base64 or parsing failed for " .
-                    $pathToFile
-            );
-        }
-        $this->certificate = $certificate;
-        return $this;
+        return CertificateLoader::fromString($fileContent);
     }
 
     /**
      * Loads the certificate from string and returns the certificate
      *
-     * @param string certString - certificate as string
-     * @throws OcspCertificateException when the certificate decoding or parse fails
+     * @param string $certString Certificate as string
+     * @return X509 Loaded certificate
+     * @throws OcspCertificateException Thrown when the certificate decoding or parse fails
      */
-    public function fromString(string $certString)
+    public static function fromString(string $certString): X509
     {
         $certificate = new X509();
         $loaded = false;
         try {
             $loaded = $certificate->loadX509($certString);
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
         if (!$loaded) {
-            throw new OcspCertificateException(
-                "Certificate decoding from Base64 or parsing failed"
-            );
+            throw new OcspCertificateException("Certificate decoding from Base64 or parsing failed");
         }
-        $this->certificate = $certificate;
-        return $this;
+        return $certificate;
     }
 
-    public function getIssuerCertificateUrl(): string
+    public static function getIssuerCertificateUrl(X509 $certificate): string
     {
-        if (!$this->certificate) {
-            throw new OcspCertificateException("Certificate not loaded");
-        }
-
         $url = "";
-        $opts = $this->certificate->getExtension("id-pe-authorityInfoAccess");
+        $opts = $certificate->getExtension("id-pe-authorityInfoAccess");
         foreach ($opts as $opt) {
             if ($opt["accessMethod"] == "id-ad-caIssuers") {
                 $url = $opt["accessLocation"]["uniformResourceIdentifier"];
@@ -100,14 +84,10 @@ class CertificateLoader
         return $url;
     }
 
-    public function getOcspResponderUrl(): string
+    public static function getOcspResponderUrl(X509 $certificate): string
     {
-        if (!$this->certificate) {
-            throw new OcspCertificateException("Certificate not loaded");
-        }
-
         $url = "";
-        $opts = $this->certificate->getExtension("id-pe-authorityInfoAccess");
+        $opts = $certificate->getExtension("id-pe-authorityInfoAccess");
         foreach ($opts as $opt) {
             if ($opt["accessMethod"] == "id-ad-ocsp") {
                 $url = $opt["accessLocation"]["uniformResourceIdentifier"];
@@ -115,13 +95,5 @@ class CertificateLoader
             }
         }
         return $url;
-    }
-
-    public function getCert(): X509
-    {
-        if (!$this->certificate) {
-            throw new OcspCertificateException("Certificate not loaded");
-        }
-        return $this->certificate;
     }
 }

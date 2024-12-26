@@ -37,8 +37,8 @@ class OcspTest extends TestCase
     public function testWhenGenerateCertificateIdIsSuccess(): void
     {
         $result = Ocsp::generateCertificateId(
-            (new CertificateLoader)->fromFile(__DIR__ . '/_resources/revoked.crt')->getCert(),
-            (new CertificateLoader)->fromFile(__DIR__ . '/_resources/revoked.issuer.crt')->getCert(),
+            CertificateLoader::fromFile(__DIR__ . '/_resources/revoked.crt'),
+            CertificateLoader::fromFile(__DIR__ . '/_resources/revoked.issuer.crt'),
             hashAlgorithm: HashAlgorithm::SHA1
         );
 
