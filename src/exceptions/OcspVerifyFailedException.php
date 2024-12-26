@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-declare(strict_types=1);
-
 namespace web_eid\ocsp_php\exceptions;
 
 /**
