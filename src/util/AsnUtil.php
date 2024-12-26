@@ -52,24 +52,17 @@ class AsnUtil
     {
         $extractedBER = ASN1::extractBER($publicKey);
         $decodedBER = ASN1::decodeBER($extractedBER);
-        $subjectPublicKey = ASN1::asn1map(
-            $decodedBER[0],
-            SubjectPublicKeyInfo::MAP
-        )["subjectPublicKey"];
+        $subjectPublicKey = ASN1::asn1map($decodedBER[0], SubjectPublicKeyInfo::MAP)["subjectPublicKey"];
         // Remove first byte
         return pack("c*", ...array_slice(unpack("c*", $subjectPublicKey), 1));
     }
 
     public static function decodeNonceExtension(array $ocspExtensions): ?string
     {
-        $nonceExtension = current(
-            array_filter(
-                $ocspExtensions,
-                function ($extension) {
-                    return self::ID_PKIX_OCSP_NONCE == ASN1::getOID($extension["extnId"]);
-                }
-            )
-        );
+        $nonceExtension = current(array_filter(
+            $ocspExtensions,
+            fn ($extension) => self::ID_PKIX_OCSP_NONCE == ASN1::getOID($extension["extnId"])
+        ));
         if (!$nonceExtension || !isset($nonceExtension["extnValue"])) {
             return null;
         }
@@ -79,12 +72,11 @@ class AsnUtil
         $decoded = ASN1::decodeBER($nonceValue);
         if (is_array($decoded)) {
             // The value was DER-encoded, it is required to be an octet string.
-            $nonceString = ASN1::asn1map($decoded[0], ['type' => ASN1::TYPE_OCTET_STRING]);
+            $nonceString = ASN1::asn1map($decoded[0], ["type" => ASN1::TYPE_OCTET_STRING]);
             return is_string($nonceString) ? $nonceString : null;
         }
 
         // The value was not DER-encoded, return it as-is.
         return $nonceValue;
     }
-
 }
