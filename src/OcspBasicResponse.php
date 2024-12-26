@@ -25,6 +25,7 @@
 namespace web_eid\ocsp_php;
 
 use DateTime;
+use Exception;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\ASN1\Maps\Certificate;
 use phpseclib3\File\X509;
@@ -34,7 +35,7 @@ use web_eid\ocsp_php\util\AsnUtil;
 
 class OcspBasicResponse
 {
-    private array $ocspBasicResponse = [];
+    private array $ocspBasicResponse;
 
     public function __construct(array $ocspBasicResponse)
     {
@@ -76,28 +77,37 @@ class OcspBasicResponse
         return pack("c*", ...array_slice(unpack("c*", $signature), 1));
     }
 
+    /**
+     * @throws Exception
+     */
     public function getProducedAt(): DateTime
     {
-        return new DateTime(
-            $this->ocspBasicResponse["tbsResponseData"]["producedAt"]
-        );
+        return new DateTime($this->ocspBasicResponse["tbsResponseData"]["producedAt"]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function getThisUpdate(): DateTime
     {
         return new DateTime($this->getResponses()[0]["thisUpdate"]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function getNextUpdate(): ?DateTime
     {
         if (isset($this->getResponses()[0]["nextUpdate"])) {
             return new DateTime($this->getResponses()[0]["nextUpdate"]);
         }
+
         return null;
     }
 
     /**
      * @copyright 2022 Petr Muzikant pmuzikant@email.cz
+     * @throws OcspCertificateException
      */
     public function getSignatureAlgorithm(): string
     {
@@ -126,9 +136,7 @@ class OcspBasicResponse
     {
         $certStatusResponse = $this->getResponses()[0];
         // Translate algorithm name to OID for correct equality check
-        $certStatusResponse["certID"]["hashAlgorithm"][
-            "algorithm"
-        ] = ASN1::getOID(
+        $certStatusResponse["certID"]["hashAlgorithm"]["algorithm"] = ASN1::getOID(
             $certStatusResponse["certID"]["hashAlgorithm"]["algorithm"]
         );
         return $certStatusResponse["certID"];

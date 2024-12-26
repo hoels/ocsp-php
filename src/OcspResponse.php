@@ -26,6 +26,7 @@ namespace web_eid\ocsp_php;
 
 use phpseclib3\File\ASN1;
 use UnexpectedValueException;
+use web_eid\ocsp_php\exceptions\OcspCertificateException;
 use web_eid\ocsp_php\exceptions\OcspResponseDecodeException;
 use web_eid\ocsp_php\exceptions\OcspVerifyFailedException;
 use web_eid\ocsp_php\maps\OcspBasicResponseMap;
@@ -37,9 +38,12 @@ class OcspResponse
     /** Response type for a basic OCSP responder */
     const ID_PKIX_OCSP_BASIC_STRING = "id-pkix-ocsp-basic";
 
-    private array $ocspResponse = [];
+    private array $ocspResponse;
     private string $revokeReason = "";
 
+    /**
+     * @throws OcspResponseDecodeException
+     */
     public function __construct(string $encodedBER)
     {
         $decoded = self::getDecoded($encodedBER);
@@ -54,20 +58,12 @@ class OcspResponse
         ]);
     }
 
-    public function getResponse(): array
-    {
-        return $this->ocspResponse;
-    }
-
     public function getBasicResponse(): OcspBasicResponse
     {
-        if (
-            self::ID_PKIX_OCSP_BASIC_STRING !=
-            $this->ocspResponse["responseBytes"]["responseType"]
-        ) {
+        if ($this->ocspResponse["responseBytes"]["responseType"] !== self::ID_PKIX_OCSP_BASIC_STRING) {
             throw new UnexpectedValueException(
-                'responseType is not "id-pkix-ocsp-basic" but is ' .
-                    $this->ocspResponse["responseBytes"]["responseType"]
+                'responseType is not "' . self::ID_PKIX_OCSP_BASIC_STRING . '" but is "' .
+                $this->ocspResponse["responseBytes"]["responseType"] . '"'
             );
         }
 
@@ -92,7 +88,10 @@ class OcspResponse
         return $this->revokeReason;
     }
 
-    public function isRevoked()
+    /**
+     * @throws OcspVerifyFailedException
+     */
+    public function isRevoked(): ?bool
     {
         $basicResponse = $this->getBasicResponse();
         $this->validateResponse($basicResponse);
@@ -100,19 +99,22 @@ class OcspResponse
         if (isset($basicResponse->getResponses()[0]["certStatus"]["good"])) {
             return false;
         }
+
         if (isset($basicResponse->getResponses()[0]["certStatus"]["revoked"])) {
-            $revokedStatus = $basicResponse->getResponses()[0]["certStatus"][
-                "revoked"
-            ];
+            $revokedStatus = $basicResponse->getResponses()[0]["certStatus"]["revoked"];
             // Check revoke reason
             if (isset($revokedStatus["revokedReason"])) {
                 $this->revokeReason = $revokedStatus["revokedReason"];
             }
             return true;
         }
+
         return null;
     }
 
+    /**
+     * @throws OcspCertificateException|OcspVerifyFailedException
+     */
     public function validateSignature(): void
     {
         $basicResponse = $this->getBasicResponse();
@@ -134,6 +136,9 @@ class OcspResponse
         }
     }
 
+    /**
+     * @throws OcspVerifyFailedException
+     */
     public function validateCertificateId(array $requestCertificateId): void
     {
         $basicResponse = $this->getBasicResponse();
@@ -144,14 +149,16 @@ class OcspResponse
         }
     }
 
+    /**
+     * @throws OcspVerifyFailedException
+     */
     private function validateResponse(OcspBasicResponse $basicResponse): void
     {
         // Must be one response
         if (count($basicResponse->getResponses()) != 1) {
             throw new OcspVerifyFailedException(
-                "OCSP response must contain one response, received " .
-                    count($basicResponse->getResponses()) .
-                    " responses instead"
+                "OCSP response must contain one response, received " . count($basicResponse->getResponses())
+                . " responses instead"
             );
         }
 
@@ -163,7 +170,11 @@ class OcspResponse
         }
     }
 
-    private static function getDecoded(string $encodedBER) {
+    /**
+     * @throws OcspResponseDecodeException
+     */
+    private static function getDecoded(string $encodedBER): array
+    {
         $decoded = ASN1::decodeBER($encodedBER);
         if (!is_array($decoded)) {
             throw new OcspResponseDecodeException();
