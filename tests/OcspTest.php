@@ -36,7 +36,11 @@ class OcspTest extends TestCase
 
     public function testWhenGenerateCertificateIdIsSuccess(): void
     {
-        $result = (new Ocsp)->generateCertificateId((new CertificateLoader)->fromFile(__DIR__ . '/_resources/revoked.crt')->getCert(), (new CertificateLoader)->fromFile(__DIR__ . '/_resources/revoked.issuer.crt')->getCert());
+        $result = (new Ocsp)->generateCertificateId(
+            (new CertificateLoader)->fromFile(__DIR__ . '/_resources/revoked.crt')->getCert(),
+            (new CertificateLoader)->fromFile(__DIR__ . '/_resources/revoked.issuer.crt')->getCert(),
+            hashAlgorithm: HashAlgorithm::SHA1
+        );
 
         $this->assertEquals("1.3.14.3.2.26", $result['hashAlgorithm']['algorithm']);
         $this->assertEquals([126, 230, 106, 231, 114, 154, 179, 252, 248, 162, 32, 100, 108, 22, 161, 45, 96, 113, 8, 93], array_values(unpack('C*', $result['issuerNameHash'])));

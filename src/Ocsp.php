@@ -45,7 +45,7 @@ class Ocsp
     public function generateCertificateId(
         X509 $certificate,
         X509 $issuerCertificate,
-        HashAlgorithm $hashAlgorithm = HashAlgorithm::SHA1
+        HashAlgorithm $hashAlgorithm = HashAlgorithm::SHA256
     ): array {
         AsnUtil::loadOIDs();
 
