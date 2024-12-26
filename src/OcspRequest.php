@@ -30,6 +30,8 @@ use web_eid\ocsp_php\util\AsnUtil;
 
 class OcspRequest
 {
+    const CONTENT_TYPE = "application/ocsp-request";
+
     private array $ocspRequest;
 
     public function __construct()

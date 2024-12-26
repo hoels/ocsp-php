@@ -33,6 +33,10 @@ use web_eid\ocsp_php\maps\OcspResponseMap;
 
 class OcspResponse
 {
+    const CONTENT_TYPE = "application/ocsp-response";
+    /** Response type for a basic OCSP responder */
+    const ID_PKIX_OCSP_BASIC_STRING = "id-pkix-ocsp-basic";
+
     private array $ocspResponse = [];
     private string $revokeReason = "";
 
@@ -58,7 +62,7 @@ class OcspResponse
     public function getBasicResponse(): OcspBasicResponse
     {
         if (
-            Ocsp::ID_PKIX_OCSP_BASIC_STRING !=
+            self::ID_PKIX_OCSP_BASIC_STRING !=
             $this->ocspResponse["responseBytes"]["responseType"]
         ) {
             throw new UnexpectedValueException(

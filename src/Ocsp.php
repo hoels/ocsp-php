@@ -34,27 +34,6 @@ use web_eid\ocsp_php\util\HashAlgorithm;
 class Ocsp
 {
     /**
-     * The media type (Content-Type header) to be used when sending the request to the OCSP Responder URL.
-     *
-     * @var string
-     */
-    const OCSP_REQUEST_MEDIATYPE = "application/ocsp-request";
-
-    /**
-     * The media type (Content-Type header) that should be included in responses from the OCSP Responder URL.
-     *
-     * @var string
-     */
-    const OCSP_RESPONSE_MEDIATYPE = "application/ocsp-response";
-
-    /**
-     * Response type for a basic OCSP responder
-     *
-     * @var string
-     */
-    public const ID_PKIX_OCSP_BASIC_STRING = "id-pkix-ocsp-basic";
-
-    /**
      * Generates certificate ID with subject and issuer certificates
      *
      * @param X509 $certificate - subject certificate
