@@ -1,16 +1,11 @@
 {
-    "name": "web-eid/ocsp-php",
+    "name": "hoels/ocsp-php",
     "type": "library",
     "description": "OCSP library for PHP",
     "license": "MIT",
     "authors": [
         {
-            "name": "Guido Gröön",
-            "role": "developer"
-        },
-        {
-            "name": "Kai Hölscher",
-            "role": "developer"
+            "name": "Kai Hölscher"
         }
     ],
     "require": {
