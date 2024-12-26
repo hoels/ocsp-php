@@ -1,10 +1,15 @@
-.phpunit.result.cache
-.phpunit.cache/
 .vscode/
 .idea/
-vendor
-build
 .DS_Store
-phpunit.xml
-*.swp
+/vendor/
 composer.lock
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+###> squizlabs/php_codesniffer ###
+/.phpcs-cache
+/phpcs.xml
+###< squizlabs/php_codesniffer ###
