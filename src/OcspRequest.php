@@ -47,29 +47,24 @@ class OcspRequest
 
     public function addCertificateId(array $certificateId): void
     {
-        $request = [
-            "reqCert" => $certificateId,
-        ];
-        $this->ocspRequest["tbsRequest"]["requestList"][] = $request;
+        $this->ocspRequest["tbsRequest"]["requestList"][]["reqCert"] = $certificateId;
     }
 
     public function addNonceExtension(string $nonce): void
     {
-        $nonceExtension = [
+        $this->ocspRequest["tbsRequest"]["requestExtensions"][] = [
             "extnId" => AsnUtil::ID_PKIX_OCSP_NONCE,
             "critical" => false,
             "extnValue" => ASN1::encodeDER($nonce, ['type' => ASN1::TYPE_OCTET_STRING]),
         ];
-        $this->ocspRequest["tbsRequest"]["requestExtensions"][] = $nonceExtension;
     }
 
     /**
      * @copyright 2022 Petr Muzikant pmuzikant@email.cz
      */
-    public function getNonceExtension(): string
+    public function getNonceExtension(): ?string
     {
-        // TODO: the ?? '' is here only for v1.0 API compatibility. Remove this in version 1.2 and change the return type to ?string.
-        return AsnUtil::decodeNonceExtension($this->ocspRequest["tbsRequest"]["requestExtensions"] ?? []) ?? '';
+        return AsnUtil::decodeNonceExtension($this->ocspRequest["tbsRequest"]["requestExtensions"] ?? []);
     }
 
     public function getEncodeDer(): string

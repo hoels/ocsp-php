@@ -22,62 +22,32 @@
  * SOFTWARE.
  */
 
-declare(strict_types=1);
-
 namespace web_eid\ocsp_php;
 
 use phpseclib3\File\ASN1;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
+use ReflectionObject;
 use web_eid\ocsp_php\util\AsnUtil;
 
 class OcspRequestTest extends TestCase
 {
-
-    private function getRequest(): array
-    {
-        return [
-            'tbsRequest' => [
-                'version' => 'v1',
-            ],
-        ];
-    }
-
-    private function getNonce(): array
-    {
-        return [
-            'extnId' => AsnUtil::ID_PKIX_OCSP_NONCE,
-            'critical' => false,
-            'extnValue' => ASN1::encodeDER("nonce", ['type' => ASN1::TYPE_OCTET_STRING]),
-        ];
-    }
-
-    private function getExpectedRequestWithCertID(): array
-    {
-        $result = $this->getRequest();
-        $result['tbsRequest']['requestList'][] = [
-            'reqCert' => [1]
-        ];
-        return $result;
-    }
-
-    private function getExpectedWithNonce(): array
-    {
-        $result = $this->getRequest();
-        $result['tbsRequest']['requestExtensions'][] = $this->getNonce();
-        return $result;
-    }
-
-    public function testWhenAddCertificateIdSuccess(): void
+    public function testSuccessWhenAddingCertificateId(): void
     {
         $request = new OcspRequest();
         $request->addCertificateId([1]);
 
-        $reflection = new ReflectionClass(get_class($request));
-        $property = $reflection->getProperty('ocspRequest');
-        $property->setAccessible(true);
+        $requestReflector = new ReflectionObject($request);
 
-        $this->assertEquals($this->getExpectedRequestWithCertID(), $property->getValue($request));
+        $this->assertEquals([
+            "tbsRequest" => [
+                "version" => "v1",
+                "requestList" => [
+                    [
+                        "reqCert" => [1]
+                    ]
+                ],
+            ],
+        ], $requestReflector->getProperty("ocspRequest")->getValue($request));
     }
 
     public function testWhenAddNonceExtensionSuccess(): void
@@ -85,11 +55,20 @@ class OcspRequestTest extends TestCase
         $request = new OcspRequest();
         $request->addNonceExtension("nonce");
 
-        $reflection = new ReflectionClass(get_class($request));
-        $property = $reflection->getProperty('ocspRequest');
-        $property->setAccessible(true);
+        $requestReflector = new ReflectionObject($request);
 
-        $this->assertEquals($this->getExpectedWithNonce(), $property->getValue($request));
+        $this->assertEquals([
+            'tbsRequest' => [
+                'version' => 'v1',
+                'requestExtensions' => [
+                    [
+                        'extnId' => AsnUtil::ID_PKIX_OCSP_NONCE,
+                        'critical' => false,
+                        'extnValue' => ASN1::encodeDER("nonce", ['type' => ASN1::TYPE_OCTET_STRING]),
+                    ]
+                ]
+            ],
+        ], $requestReflector->getProperty("ocspRequest")->getValue($request));
     }
 
     public function testWhenGetNonceExtensionSuccess(): void
