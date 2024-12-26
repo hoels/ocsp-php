@@ -25,8 +25,12 @@
 namespace web_eid\ocsp_php\certificate;
 
 use Exception;
+use phpseclib3\File\ASN1;
+use phpseclib3\File\ASN1\Maps\Name;
 use phpseclib3\File\X509;
 use web_eid\ocsp_php\exceptions\OcspCertificateException;
+use web_eid\ocsp_php\util\AsnUtil;
+use web_eid\ocsp_php\util\HashAlgorithm;
 
 class CertificateLoader
 {
@@ -95,5 +99,61 @@ class CertificateLoader
             }
         }
         return $url;
+    }
+
+    /**
+     * Generates certificate ID with subject and issuer certificates
+     *
+     * @param X509 $certificate Subject certificate
+     * @param X509 $issuerCertificate Issuer certificate
+     * @param HashAlgorithm $hashAlgorithm The hash algorithm to use for the issuer name and key hashes
+     * @return mixed[] Certificate ID array
+     * @throws OcspCertificateException Thrown when the subject or issuer certificates don't have required data
+     */
+    public static function generateCertificateId(
+        X509 $certificate,
+        X509 $issuerCertificate,
+        HashAlgorithm $hashAlgorithm = HashAlgorithm::SHA256
+    ): array {
+        AsnUtil::loadOIDs();
+
+        // try to get serial number
+        $serialNumber = $certificate->getCurrentCert()["tbsCertificate"]["serialNumber"] ?? null;
+        if ($serialNumber === null) {
+            throw new OcspCertificateException("Serial number of subject certificate does not exist");
+        }
+        $serialNumber = clone $serialNumber;
+
+        // try to get issuer name and compute hash
+        $issuerName = $issuerCertificate->getCurrentCert()["tbsCertificate"]["subject"] ?? null;
+        if ($issuerName === null) {
+            throw new OcspCertificateException("Subject of issuer certificate does not exist");
+        }
+        $issuerNameHash = hash(
+            algo: $hashAlgorithm->value,
+            data: ASN1::encodeDER($issuerName, Name::MAP),
+            binary: true
+        );
+
+        // try to get issuer public key and compute hash
+        $issuerKey = $issuerCertificate->getCurrentCert()["tbsCertificate"]["subjectPublicKeyInfo"]["subjectPublicKey"]
+            ?? null;
+        if ($issuerKey === null) {
+            throw new OcspCertificateException("Public key of issuer certificate does not exist");
+        }
+        $issuerKeyHash = hash(
+            algo: $hashAlgorithm->value,
+            data: AsnUtil::extractKeyData($issuerKey),
+            binary: true
+        );
+
+        return [
+            "hashAlgorithm" => [
+                "algorithm" => Asn1::getOID("id-" . $hashAlgorithm->value),
+            ],
+            "issuerNameHash" => $issuerNameHash,
+            "issuerKeyHash" => $issuerKeyHash,
+            "serialNumber" => $serialNumber,
+        ];
     }
 }

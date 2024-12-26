@@ -24,8 +24,10 @@
 
 namespace web_eid\ocsp_php\certificate;
 
+use phpseclib3\File\X509;
 use PHPUnit\Framework\TestCase;
 use web_eid\ocsp_php\exceptions\OcspCertificateException;
+use web_eid\ocsp_php\util\HashAlgorithm;
 
 class CertificateLoaderTest extends TestCase
 {
@@ -78,5 +80,38 @@ class CertificateLoaderTest extends TestCase
         $this->expectExceptionMessage('Certificate decoding from Base64 or parsing failed');
 
         CertificateLoader::fromString("certsource");
+    }
+
+    public function testWhenGenerateCertificateIdIsSuccess(): void
+    {
+        $result = CertificateLoader::generateCertificateId(
+            CertificateLoader::fromFile(__DIR__ . '/../_resources/revoked.crt'),
+            CertificateLoader::fromFile(__DIR__ . '/../_resources/revoked.issuer.crt'),
+            hashAlgorithm: HashAlgorithm::SHA1
+        );
+
+        $this->assertEquals("1.3.14.3.2.26", $result['hashAlgorithm']['algorithm']);
+        $this->assertEquals(
+            [126, 230, 106, 231, 114, 154, 179, 252, 248, 162, 32, 100, 108, 22, 161, 45, 96, 113, 8, 93],
+            array_values(unpack('C*', $result['issuerNameHash']))
+        );
+        $this->assertEquals(
+            [168, 74, 106, 99, 4, 125, 221, 186, 230, 209, 57, 183, 166, 69, 101, 239, 243, 168, 236, 161],
+            array_values(unpack('C*', $result['issuerKeyHash']))
+        );
+    }
+
+    public function testWhenMissingSerialNumberInSubjectCertificateThrow(): void
+    {
+        $this->expectException(OcspCertificateException::class);
+        $this->expectExceptionMessage("Serial number of subject certificate does not exist");
+
+        $subject = new X509();
+        $subject->setDNProp('id-at-organizationName', 'no serialnumber cert');
+
+        $issuer = new X509();
+        $issuer->setDN($subject->getDN());
+
+        CertificateLoader::generateCertificateId($subject, $issuer);
     }
 }
